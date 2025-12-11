@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Tester</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', 'Consolas', monospace;
+    }
+    
+    body {
+        background: transparent !important;
+        color: white;
+        height: 100vh;
+        overflow: hidden;
+        display: none;
+    }
+    
+    /* Remove all background from container */
+    .container {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 750px;
+        background: rgba(30, 41, 59, 0.85) !important;
+        border-radius: 12px;
+        padding: 25px;
+
+        border: 1px solid rgba(59, 130, 246, 0.4);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+    }
+    
+    .header {
+        text-align: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(59, 130, 246, 0.5);
+    }
+    
+    .header h1 {
+        font-size: 26px;
+        color: #60a5fa;
+        text-shadow: 0 0 15px rgba(96, 165, 250, 0.5);
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .header p {
+        color: #94a3b8;
+        font-size: 14px;
+        opacity: 0.8;
+    }
+    
+    .input-area {
+        margin-bottom: 20px;
+    }
+    
+    #eventCode {
+        width: 100%;
+        min-height: 120px;
+        background: rgba(30, 41, 59, 0.9) !important;
+        border: 2px solid rgba(51, 65, 85, 0.9);
+        border-radius: 8px;
+        color: #f1f5f9;
+        padding: 15px;
+        font-size: 15px;
+        resize: vertical;
+        font-family: 'Consolas', 'Monaco', monospace;
+        line-height: 1.5;
+        transition: all 0.3s;
+    }
+    
+    #eventCode:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    
+    #eventCode::placeholder {
+        color: #64748b;
+        font-style: italic;
+    }
+    
+    .controls {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    
+    button {
+        flex: 1;
+        padding: 14px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .btn-execute {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+    
+    .btn-execute:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+    }
+    
+    .btn-examples {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+    }
+    
+    .btn-examples:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+    }
+    
+    .btn-close {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+    }
+    
+    .btn-close:hover {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+    }
+    
+    .examples-panel {
+        background: rgba(30, 41, 59, 0.95) !important;
+        border-radius: 8px;
+        padding: 20px;
+        max-height: 250px;
+        overflow-y: auto;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        margin-bottom: 15px;
+        display: none;
+    }
+    
+    .examples-panel.show {
+        display: block;
+    }
+    
+    .examples-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    
+    .examples-header h3 {
+        color: #60a5fa;
+        font-size: 16px;
+    }
+    
+    .close-examples {
+        background: rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+        padding: 6px 12px;
+        font-size: 13px;
+        flex: 0;
+    }
+    
+    .close-examples:hover {
+        background: rgba(239, 68, 68, 0.3);
+    }
+    
+    .example-item {
+        background: rgba(51, 65, 85, 0.7);
+        padding: 12px;
+        margin-bottom: 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 13px;
+        border-left: 4px solid #3b82f6;
+        word-break: break-all;
+    }
+    
+    .example-item:hover {
+        background: rgba(71, 85, 105, 0.9);
+        transform: translateX(5px);
+    }
+    
+    .example-type {
+        display: inline-block;
+        padding: 3px 8px;
+        background: rgba(59, 130, 246, 0.2);
+        border-radius: 4px;
+        font-size: 11px;
+        color: #93c5fd;
+        margin-bottom: 8px;
+    }
+    
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 14px 18px;
+        border-radius: 8px;
+        color: white;
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 10000;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        opacity: 0;
+        transform: translateX(100px);
+        transition: all 0.4s ease;
+        background: rgba(30, 41, 59, 0.95) !important;
+    }
+    
+    .notification.show {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    
+    .notification.success {
+        border-color: rgba(16, 185, 129, 0.3);
+        border-left: 4px solid #10b981;
+    }
+    
+    .notification.error {
+        border-color: rgba(239, 68, 68, 0.3);
+        border-left: 4px solid #ef4444;
+    }
+    
+    .notification.info {
+        border-color: rgba(59, 130, 246, 0.3);
+        border-left: 4px solid #3b82f6;
+    }
+    
+    .hint {
+        text-align: center;
+        color: #94a3b8;
+        font-size: 12px;
+        margin-top: 15px;
+        opacity: 0.7;
+    }
+    
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: rgba(30, 41, 59, 0.5);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: #475569;
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
+    }
+    
+    /* Animation for showing */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .container {
+        animation: fadeIn 0.3s ease;
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ EVENT TESTER</h1>
+            <p>Execute any Lua event directly</p>
+        </div>
+        
+        <div class="input-area">
+            <textarea 
+                id="eventCode" 
+                placeholder="Type your event here...
+Example: TriggerServerEvent('QBCore:Server:SetMetaData', GetPlayerServerId(PlayerId()), 'hunger', 100)
+Press Enter to execute (Shift+Enter for new line)" 
+                autocomplete="off"
+                spellcheck="false"
+                rows="6">
+            </textarea>
+        </div>
+        
+        <div class="controls">
+            <button class="btn-execute" onclick="executeEvent()">
+                <span>▶</span> Execute Event
+            </button>
+            <button class="btn-examples" onclick="toggleExamples()">
+                <span>📚</span> Examples
+            </button>
+            <button class="btn-close" onclick="closeUI()">
+                <span>✕</span> Close
+            </button>
+        </div>
+        
+        <div class="examples-panel" id="examplesPanel">
+            <div class="examples-header">
+                <h3>Click to insert example:</h3>
+                <button class="close-examples" onclick="toggleExamples()">
+                    Hide
+                </button>
+            </div>
+            <div id="examplesList">
+                <!-- Examples will be loaded here -->
+            </div>
+        </div>
+        
+        <div class="hint">
+          • ESC to close • Enter to execute • Shift+Enter for new line
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+    
+    <script>
+        let examplesLoaded = false;
+        
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification ' + type;
+            
+            // Force reflow
+            notification.offsetHeight;
+            
+            // Show
+            notification.classList.add('show');
+            
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Close UI - FIXED: Don't call SetNuiFocus from JavaScript
+        function closeUI() {
+            document.body.style.display = 'none';
+            fetch(`https://${GetParentResourceName()}/close`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({})
+            }).catch(error => {
+                console.log('Close request error:', error);
+            });
+        }
+        
+        // Execute event
+        function executeEvent() {
+            const code = document.getElementById('eventCode').value.trim();
+            
+            if (!code) {
+                showNotification('Please enter some code to execute', 'error');
+                return;
+            }
+            
+            showNotification('Executing event...', 'info');
+            
+            fetch(`https://${GetParentResourceName()}/executeEvent`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ code: code })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Response handled by message event
+            })
+            .catch(error => {
+                showNotification('Network error: ' + error.message, 'error');
+            });
+        }
+        
+        // Toggle examples panel
+        function toggleExamples() {
+            const panel = document.getElementById('examplesPanel');
+            panel.classList.toggle('show');
+            
+            if (panel.classList.contains('show') && !examplesLoaded) {
+                loadExamples();
+                examplesLoaded = true;
+            }
+        }
+        
+        // Load examples
+        function loadExamples() {
+            fetch(`https://${GetParentResourceName()}/getExamples`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Examples loaded via message event
+            })
+            .catch(error => {
+                showNotification('Failed to load examples', 'error');
+            });
+        }
+        
+        // Insert example into input
+        function insertExample(example) {
+            document.getElementById('eventCode').value = example;
+            showNotification('Example inserted', 'success');
+            
+            // Auto-resize textarea
+            const textarea = document.getElementById('eventCode');
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+            
+            textarea.focus();
+        }
+        
+        // Listen for messages from Lua
+        window.addEventListener('message', function(event) {
+            const action = event.data.action;
+            
+            if (action === 'show') {
+                document.body.style.display = 'block';
+                setTimeout(() => {
+                    const textarea = document.getElementById('eventCode');
+                    textarea.focus();
+                    
+                    // Auto-resize
+                    textarea.style.height = 'auto';
+                    textarea.style.height = textarea.scrollHeight + 'px';
+                }, 100);
+            } 
+            else if (action === 'hide') {
+                document.body.style.display = 'none';
+            } 
+            else if (action === 'notify') {
+                showNotification(event.data.message, event.data.type || 'success');
+            } 
+            else if (action === 'setExamples') {
+                const examplesList = document.getElementById('examplesList');
+                examplesList.innerHTML = '';
+                
+                event.data.examples.forEach(example => {
+                    const div = document.createElement('div');
+                    div.className = 'example-item';
+                    div.onclick = () => insertExample(example);
+                    
+                    // Determine type
+                    let type = 'Unknown';
+                    let typeClass = '';
+                    if (example.includes('TriggerServerEvent')) {
+                        type = 'Server';
+                        typeClass = 'server';
+                    } else if (example.includes('TriggerEvent')) {
+                        type = 'Client';
+                        typeClass = 'client';
+                    } else if (example.includes('exports')) {
+                        type = 'Export';
+                        typeClass = 'export';
+                    } else if (example.includes('print')) {
+                        type = 'Debug';
+                        typeClass = 'debug';
+                    } else if (example.includes('QBCore')) {
+                        type = 'QBCore';
+                        typeClass = 'qb';
+                    }
+                    
+                    div.innerHTML = `
+                        <div class="example-type ${typeClass}">${type}</div>
+                        <div>${example}</div>
+                    `;
+                    
+                    examplesList.appendChild(div);
+                });
+            }
+        });
+        
+        // Handle keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            // ESC to close
+            if (event.key === 'Escape') {
+                closeUI();
+                event.preventDefault();
+            }
+            
+            // Enter to execute (without Shift)
+            const textarea = document.getElementById('eventCode');
+            if (event.key === 'Enter' && !event.shiftKey && document.activeElement === textarea) {
+                executeEvent();
+                event.preventDefault();
+            }
+            
+            // Ctrl+Enter or Cmd+Enter to execute
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                executeEvent();
+                event.preventDefault();
+            }
+        });
+        
+        // Auto-resize textarea on input
+        const textarea = document.getElementById('eventCode');
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 300) + 'px';
+        });
+        
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hide body initially
+            document.body.style.display = 'none';
+            
+            // Set initial textarea height
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 300) + 'px';
+        });
+    </script>
+</body>
+</html>
