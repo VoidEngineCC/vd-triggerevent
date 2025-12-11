@@ -4,17 +4,6 @@ A lightweight FiveM development tool that provides an in-game interface for trig
 
 ---
 
-## Resource Structure
-
-vd-triggerevent/
- ├── client.lua
- ├── server.lua
- ├── ui.html
- ├── fxmanifest.lua
- └── __resource.lfx
-
----
-
 ## Features
 
 • NUI interface for sending events  
